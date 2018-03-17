@@ -794,6 +794,8 @@ class WebWeixin(object):
         print( invite_user_name + ':' + to_user_name )
         # TODO 存储mysql
         self.insertIvites(msg, invite_user_name, to_user_name)
+        ans = '欢迎' + to_user_name + '\n 回复【/我的地址 0xssss(以太坊地址) @机器人】即可领取糖果'
+        self.webwxsendmsg(ans, msg['FromUserName'])
 
     def handleGroupMsg(self, message):
         srcName = None
@@ -820,10 +822,12 @@ class WebWeixin(object):
                     srcName = self.getUserRemarkName(people)
                     dstName = 'GROUP'
                     #如果是发到邀请群里的消息
-                    if '#我的地址' in content and '@机器人' in content:
+                    if '/我的地址' in content and '@机器人' in content:
                         addr = content.strip()[6:-4]
                         print('get eth addr:' + addr)
                         self.insertEth(msg['raw_msg'], addr, srcName)
+                        ans = '@' + srcName + '\n 您的地址[' + addr + ']已收到'
+                        self.webwxsendmsg(ans, msg['raw_msg']['FromUserName'])
 
                 else:
                     groupName = srcName
@@ -922,6 +926,10 @@ class WebWeixin(object):
 #自己加的代码-------------------------------------------#
                 self.handleGroupMsg(raw_msg)
 #自己加的代码-------------------------------------------#
+
+                if msg['Content'] == '/start':
+                    self.webwxsendmsg('I am still working', msg['FromUserName'])
+
                 if self.autoReplyMode:
                     ans = '对不起，您的以太坊地址无法验证' + '\n[微信机器人自动回复]'
                     if self.webwxsendmsg(ans, msg['FromUserName']):
@@ -938,6 +946,7 @@ class WebWeixin(object):
                 self._showMsg(raw_msg)
                 # TODO 存表，记录邀请信息
                 self.storeInvite(msg)
+
             elif msgType == 3:
                 image = self.webwxgetmsgimg(msgid)
                 raw_msg = {'raw_msg': msg,
@@ -1026,6 +1035,10 @@ class WebWeixin(object):
                 print('[*] 你在其他地方登录了 WEB 版微信，债见')
                 logging.debug('[*] 你在其他地方登录了 WEB 版微信，债见')
                 break
+            if retcode == '1102':
+                print('[*] 不明飞行物1102')
+                r = self.webwxsync()
+                break;
             elif retcode == '0':
                 r = self.webwxsync()
                 if selector == '2' or selector == '3':
