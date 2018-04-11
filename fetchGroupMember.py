@@ -358,7 +358,13 @@ class WebWeixin(object):
         for i in range(len(ContactList) - 1, -1, -1):
             Contact = ContactList[i]
             MemberList = Contact['MemberList']
+            # print('MemberList: ')
+            print(Contact['NickName'])
+            print(Contact['UserName'])
+            # print(MemberList)
             for member in MemberList:
+                if 'IIC智投链官方群004' in Contact['NickName']:
+                    print('Member in 004:' + member['NickName'] + ':' + member['UserName'])
                 self.GroupMemeberList.append(member)
         return True
 
@@ -446,6 +452,7 @@ class WebWeixin(object):
         return dic
 
     def webwxsendmsg(self, word, to='filehelper'):
+        return 1
         url = self.base_uri + \
             '/webwxsendmsg?pass_ticket=%s' % (self.pass_ticket)
         clientMsgId = str(int(time.time() * 1000)) + \
@@ -794,7 +801,7 @@ class WebWeixin(object):
         print( invite_user_name + ':' + to_user_name )
         # TODO 存储mysql
         self.insertIvites(msg, invite_user_name, to_user_name)
-        ans = '欢迎' + to_user_name + '\n 回复 /我的地址 0xssss(以太坊地址) @知投链小I 即可领取糖果'
+        ans = '欢迎' + to_user_name + '\n 回复【/我的地址 0xssss(以太坊地址) @机器人】即可领取糖果'
         self.webwxsendmsg(ans, msg['FromUserName'])
 
     def handleGroupMsg(self, message):
@@ -816,24 +823,18 @@ class WebWeixin(object):
             if msg['raw_msg']['FromUserName'][:2] == '@@':
                 # 接收到来自群的消息
                 if ":<br/>" in content:
-                    #@667e07794bdca54c9380552a6d5a50d9:<br/>#我的地址#0xhdjdjjjdj@知投链小I
+                    #@667e07794bdca54c9380552a6d5a50d9:<br/>#我的地址#0xhdjdjjjdj@机器人
                     [people, content] = content.split(':<br/>', 1)
                     groupName = srcName
                     srcName = self.getUserRemarkName(people)
                     dstName = 'GROUP'
                     #如果是发到邀请群里的消息
-                    if '/我的地址' in content and '@知投链小I' in content:
-                        addr_arr = content.split('我的地址')
-                        for con in addr_arr:
-                            if '0x' in con:
-                                addr_arr2 = con.split('@')
-                                for addr in addr_arr2:
-                                    if 'Ox' in addr:
-                                        addr = content.strip()[6:-4]
-                                        print('get eth addr:' + addr)
-                                        self.inserteth(msg['raw_msg'], addr, srcname)
-                                        ans = '@' + srcname + '\n 您的地址[' + addr + ']已收到'
-                                        self.webwxsendmsg(ans, msg['raw_msg']['FromUserName'])
+                    if '/我的地址' in content and '@机器人' in content:
+                        addr = content.strip()[6:-4]
+                        print('get eth addr:' + addr)
+                        self.insertEth(msg['raw_msg'], addr, srcName)
+                        ans = '@' + srcName + '\n 您的地址[' + addr + ']已收到'
+                        self.webwxsendmsg(ans, msg['raw_msg']['FromUserName'])
 
                 else:
                     groupName = srcName
@@ -937,7 +938,7 @@ class WebWeixin(object):
                     self.webwxsendmsg('I am still working', msg['FromUserName'])
 
                 if self.autoReplyMode:
-                    ans = '对不起，您的以太坊地址无法验证' + '\n[微信知投链小I自动回复]'
+                    ans = '对不起，您的以太坊地址无法验证' + '\n[微信机器人自动回复]'
                     if self.webwxsendmsg(ans, msg['FromUserName']):
                         print('自动回复: ' + ans)
                         logging.info('自动回复: ' + ans)
